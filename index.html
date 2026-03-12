@@ -1,68 +1,69 @@
 /**
- * Perbaikan Struktur Kode Kalkulator Invila™
- * Fokus: PDAM vs Jasa Invila (ABT Dihapus)
+ * RE-VALIDATED CODE: Invila™ Profit Generator
+ * Version: 2.1 (Pure PDAM vs Invila)
  */
 
 function updateSavings() {
-    // 1. Ambil nilai input dari elemen HTML
-    const volTotal = parseFloat(document.getElementById('vol_total').value) || 0;
-    const pdamPrice = parseFloat(document.getElementById('pdam_price').value) || 0;
-    const invilaPrice = parseFloat(document.getElementById('invila_price').value) || 0;
+    // Ambil elemen untuk menghindari pengulangan document.getElementById
+    const elVol = document.getElementById('vol_total');
+    const elPdam = document.getElementById('pdam_price');
+    const elInvila = document.getElementById('invila_price');
+    
+    // Validasi keberadaan elemen sebelum eksekusi
+    if (!elVol || !elPdam || !elInvila) return;
 
-    // 2. Logika Perhitungan
-    // Target yield reklamasi ditetapkan 80% (0.8)
+    const volTotal = parseFloat(elVol.value) || 0;
+    const pdamPrice = parseFloat(elPdam.value) || 0;
+    const invilaPrice = parseFloat(elInvila.value) || 0;
+
+    // LOGIKA: Substitusi 80% volume PDAM dengan Jasa Invila
     const yieldRate = 0.8;
     const volReclaimed = volTotal * yieldRate;
-
-    // Menghitung selisih harga per meter kubik
     const savingPerCubic = pdamPrice - invilaPrice;
+    
     const dailySaving = volReclaimed * savingPerCubic;
-
-    // Menghitung bulanan (basis 31 hari) dan tahunan
-    const monthlySaving = dailySaving * 31;
+    const monthlySaving = dailySaving * 31; // Basis 31 hari
     const annualSaving = monthlySaving * 12;
 
-    // 3. Formatter Rupiah (IDR)
+    // FORMATTER
     const formatter = new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
+        minimumFractionDigits: 0
     });
 
-    // 4. Update Tampilan ke UI
-    const monthlyEl = document.getElementById('monthly_saving');
-    const annualEl = document.getElementById('annual_saving');
+    // UPDATE UI
+    const mSavingEl = document.getElementById('monthly_saving');
+    const aSavingEl = document.getElementById('annual_saving');
 
-    // Gunakan pengecekan elemen agar script tidak error jika ID tidak ditemukan
-    if (monthlyEl) {
-        monthlyEl.innerText = formatter.format(monthlySaving).replace("Rp", "Rp ");
-    }
-    if (annualEl) {
-        annualEl.innerText = formatter.format(annualSaving).replace("Rp", "Rp ") + " / Tahun";
-    }
+    if (mSavingEl) mSavingEl.innerText = formatter.format(monthlySaving).replace("Rp", "Rp ");
+    if (aSavingEl) aSavingEl.innerText = formatter.format(annualSaving).replace("Rp", "Rp ") + " / Tahun";
 }
 
 function kirimWhatsApp() {
-    // Mengambil teks hasil akhir dari layar
     const monthly = document.getElementById('monthly_saving')?.innerText || "0";
     const annual = document.getElementById('annual_saving')?.innerText || "0";
+    const vol = document.getElementById('vol_total')?.value || "0";
 
-    const message = `Halo Tim Invila, saya telah melakukan simulasi kalkulator.\n\n` +
-                    `Estimasi penghematan biaya air PDAM kami adalah:\n` +
-                    `- Per Bulan: ${monthly}\n` +
-                    `- Per Tahun: ${annual}\n\n` +
-                    `Mohon info lebih lanjut mengenai survey site.`;
+    const message = `Halo Tim Invila, saya telah mensimulasikan potensi profit.\n\n` +
+                    `Detail Pabrik:\n` +
+                    `- Volume: ${vol} m3/hari\n` +
+                    `- Hemat/Bulan: ${monthly}\n` +
+                    `- Hemat/Tahun: ${annual}\n\n` +
+                    `Mohon jadwalkan survey site untuk verifikasi data ini.`;
 
-    // Pastikan nomor tujuan sesuai dengan kebutuhan Anda
     const waUrl = `https://wa.me/628123456789?text=${encodeURIComponent(message)}`;
     window.open(waUrl, '_blank');
 }
 
-// Menghubungkan semua elemen <input> agar otomatis menghitung saat diketik
-document.querySelectorAll('input').forEach(input => {
-    input.addEventListener('input', updateSavings);
+// VALIDASI EVENT LISTENER: Hanya pasang pada input yang relevan
+document.addEventListener('DOMContentLoaded', () => {
+    const calcInputs = ['vol_total', 'pdam_price', 'invila_price'];
+    calcInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateSavings);
+    });
+    
+    // Jalankan kalkulasi awal
+    updateSavings();
 });
-
-// Menjalankan kalkulasi pertama kali saat halaman selesai dimuat (Initial Load)
-document.addEventListener('DOMContentLoaded', updateSavings);
