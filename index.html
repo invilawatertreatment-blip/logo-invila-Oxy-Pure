@@ -1,24 +1,53 @@
-<div class="flex flex-col items-center justify-center bg-gray-50 p-10 font-sans border border-gray-200 rounded-lg w-fit">
+function updateSavings() {
+    // 1. Ambil nilai input
+    const volTotal = parseFloat(document.getElementById('vol_total').value) || 0;
+    const pdamPrice = parseFloat(document.getElementById('pdam_price').value) || 0;
+    const invilaPrice = parseFloat(document.getElementById('invila_price').value) || 0;
+
+    // 2. Logika Perhitungan
+    // Asumsi: Kita mereklamasi 80% dari volume total (Yield Target)
+    const yieldRate = 0.8;
+    const volReclaimed = volTotal * yieldRate;
+
+    // Saving didapat dari selisih harga per m3 dikalikan volume yang berhasil direklamasi
+    const savingPerCubic = pdamPrice - invilaPrice;
+    const dailySaving = volReclaimed * savingPerCubic;
     
-    <div class="relative">
-        <h1 class="text-6xl font-black tracking-tight text-[#1A3C5E] leading-none">
-            INVILA<span class="text-3xl align-top font-bold">™</span>
-        </h1>
-    </div>
+    // Menggunakan basis 31 hari per bulan
+    const monthlySaving = dailySaving * 31;
+    const annualSaving = monthlySaving * 12;
 
-    <h2 class="text-5xl font-bold tracking-wide text-[#4A86A8] mt-1 italic">
-        OXI-PURE
-    </h2>
+    // 3. Formatter Rupiah
+    const formatter = new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    });
 
-    <div class="mt-6 w-48 h-48 border-4 border-[#666666] rounded-[40px] flex items-center justify-center relative bg-white">
-        <svg viewBox="0 0 100 100" class="w-32 h-32 fill-[#4A86A8]">
-            <path d="M50 5 C50 5 20 40 20 65 A30 30 0 0 0 80 65 C80 40 50 5 50 5Z" />
-            
-            <path d="M22 75 L45 55 L65 65 L80 45" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-            
-            <circle cx="45" cy="55" r="3" fill="white" />
-            <circle cx="65" cy="65" r="3" fill="white" />
-            <circle cx="80" cy="45" r="3" fill="white" />
-        </svg>
-    </div>
-</div>
+    // 4. Update UI
+    document.getElementById('monthly_saving').innerText = formatter.format(monthlySaving).replace("Rp", "Rp ");
+    document.getElementById('annual_saving').innerText = formatter.format(annualSaving).replace("Rp", "Rp ") + " / Tahun";
+}
+
+function kirimWhatsApp() {
+    const monthly = document.getElementById('monthly_saving').innerText;
+    const annual = document.getElementById('annual_saving').innerText;
+    
+    const message = `Halo Tim Invila, saya telah melakukan simulasi kalkulator.\n\n` +
+                    `Estimasi penghematan biaya air PDAM kami adalah:\n` +
+                    `- Per Bulan: ${monthly}\n` +
+                    `- Per Tahun: ${annual}\n\n` +
+                    `Mohon info lebih lanjut mengenai survey site.`;
+    
+    const waUrl = `https://wa.me/628123456789?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
+}
+
+// Listen ke semua input
+document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', updateSavings);
+});
+
+// Run pertama kali
+document.addEventListener('DOMContentLoaded', updateSavings);
